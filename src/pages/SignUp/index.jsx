@@ -1,13 +1,15 @@
 import { Container, Background, Content, AnimationContainer } from "./style";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import { Link } from "react-router-dom";
+import { Link, Redirect, useHistory } from "react-router-dom";
 import { FiUser, FiMail, FiLock } from "react-icons/fi";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import api from "../../services/api";
+import { toast } from "react-toastify";
 
-const SignUp = () => {
+const SignUp = ({ auth }) => {
   const Schema = yup.object().shape({
     name: yup.string().required("Campo Obrigatório"),
     email: yup.string().required("Campo Obrigatório").email("Email inválido"),
@@ -27,11 +29,40 @@ const SignUp = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(Schema) });
 
-  const onSubmitFunction = (data) => {
-    console.log(data);
+  const history = useHistory();
+
+  const onSubmitFunction = ({ name, email, password }) => {
+    const user = { name, email, password };
+    api
+      .post("/user/register", user)
+      .then((_) => {
+        toast.success("Usuário cadastrado com sucesso!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        history.push("/login");
+      })
+      .catch((err) => {
+        toast.error("Falha ao criar a conta, tente outo email.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
   };
 
-  console.log(errors);
+  if (auth) {
+    return <Redirect to="/dashboard" />;
+  }
 
   return (
     <Container>
